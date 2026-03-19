@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0d0f12;--bg2:#151820;--bg3:#1c2028;--bg4:#242834;
+  --border:#2a3040;--border2:#3a4555;
+  --text:#e8eaf0;--text2:#aab4c8;--text3:#6a7a95;
+  --accent:#f5a623;--accent2:#e8931a;
+  --green:#22c55e;--red:#ef4444;
+  --card-r:10px;
+  --font-head:'Barlow Condensed',sans-serif;
+  --font-body:'Barlow',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;min-height:100vh;}
+
+.nav{display:flex;align-items:center;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;overflow-x:auto;}
+.nav-brand{font-family:var(--font-head);font-size:22px;font-weight:800;color:var(--accent);margin-right:24px;padding:14px 0;white-space:nowrap;}
+.nav-brand span{color:#e8eaf0;}
+.nav-tab{padding:14px 16px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;color:#aab4c8 !important;border:none;background:transparent !important;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s;white-space:nowrap;letter-spacing:.04em;-webkit-appearance:none;appearance:none;outline:none;}
+.nav-tab:hover{color:#e8eaf0 !important;}
+.nav-tab.active{color:#f5a623 !important;border-bottom-color:#f5a623;}
+
+.page{display:none;padding:20px;max-width:1100px;margin:0 auto;}
+.page.active{display:block;}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-r);padding:16px 20px;margin-bottom:16px;}
+.card-title{font-family:var(--font-head);font-size:18px;font-weight:700;margin-bottom:14px;color:var(--text);letter-spacing:.04em;}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--card-r);padding:14px 16px;}
+.stat-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.stat-val{font-family:var(--font-head);font-size:28px;font-weight:800;color:var(--text);}
+.stat-val.green{color:var(--green);}
+.stat-val.amber{color:var(--accent);}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:6px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s;}
+.btn-primary{background:var(--accent);color:#1a1200;}
+.btn-primary:hover{background:var(--accent2);}
+.btn-secondary{background:var(--bg4);color:var(--text);border:1px solid var(--border2);}
+.btn-secondary:hover{background:var(--bg3);border-color:var(--accent);}
+.btn-sm{padding:6px 12px;font-size:13px;}
+.btn-danger{background:#3a1515;color:#ff8080;border:1px solid #5a2020;}
+.btn-danger:hover{background:#4a1818;}
+
+input,select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 12px;font-family:var(--font-body);font-size:14px;width:100%;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);}
+input::placeholder{color:var(--text3);}
+select option{background:var(--bg2);color:var(--text);}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;}
+
+/* EXERCISE CARDS — testi tutti chiari */
+.ex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.ex-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--card-r);padding:14px 16px;cursor:pointer;transition:all .2s;position:relative;}
+.ex-card:hover{border-color:var(--accent);background:var(--bg4);}
+.ex-card.selected{border-color:var(--accent);background:var(--bg4);}
+.ex-card.selected::after{content:'✓';position:absolute;top:10px;right:12px;color:var(--accent);font-weight:700;font-size:16px;}
+.ex-name{font-family:var(--font-head);font-size:17px;font-weight:700;color:#e8eaf0;margin-bottom:6px;letter-spacing:.03em;}
+.ex-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:.04em;}
+.badge-muscle{background:#1a2840;color:#90c4f8;}
+.badge-type{background:#1a2820;color:#6ed48a;}
+.badge-type.forza{background:#2a1a10;color:#f5a623;}
+/* descrizione sotto i badge — bianco/chiaro */
+.ex-detail{font-size:13px;color:#c8d0e0;line-height:1.55;}
+
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th{font-family:var(--font-head);font-size:13px;font-weight:700;color:var(--text2);text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.06em;}
+td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);}
+tr:last-child td{border-bottom:none;}
+.trend-up{color:var(--green);}
+.trend-down{color:#ff6060;}
+.trend-eq{color:var(--text3);}
+
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.filter-btn{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:#aab4c8;transition:all .15s;}
+.filter-btn:hover{color:#e8eaf0;}
+.filter-btn.active{background:var(--accent);color:#1a1200;border-color:var(--accent);}
+
+.chart-wrap{position:relative;width:100%;height:220px;margin-top:8px;}
+
+.ai-loading{display:flex;gap:6px;align-items:center;padding:10px 0;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:bounce .8s infinite;}
+.dot:nth-child(2){animation-delay:.15s;}
+.dot:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+
+.progress-bar-wrap{background:var(--bg4);border-radius:6px;height:8px;overflow:hidden;margin-top:6px;}
+.progress-bar{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent),var(--green));transition:width .5s;}
+.section-sep{border:none;border-top:1px solid var(--border);margin:18px 0;}
+
+.scheda-day{background:var(--bg3);border:1px solid var(--border);border-radius:var(--card-r);padding:14px 18px;margin-bottom:12px;}
+.scheda-day-title{font-family:var(--font-head);font-size:20px;font-weight:800;color:var(--accent);margin-bottom:10px;letter-spacing:.05em;}
+.scheda-ex-item{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);}
+.scheda-ex-item:last-child{border-bottom:none;}
+.scheda-ex-name{font-weight:600;color:var(--text);font-size:14px;}
+.scheda-ex-sets{font-size:13px;color:var(--text2);}
+
+.inner-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);}
+.inner-tab{padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;color:#aab4c8 !important;border:none;background:transparent !important;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .2s;letter-spacing:.04em;-webkit-appearance:none;appearance:none;}
+.inner-tab:hover{color:#e8eaf0 !important;}
+.inner-tab.active{color:#f5a623 !important;border-bottom-color:#f5a623;}
+.inner-panel{display:none;}
+.inner-panel.active{display:block;}
+
+.goal-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--card-r);padding:14px 18px;margin-bottom:12px;}
+.goal-ex-name{font-family:var(--font-head);font-size:17px;font-weight:700;margin-bottom:10px;letter-spacing:.03em;color:var(--text);}
+.goal-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--text2);margin-bottom:4px;}
+.goal-row span:last-child{color:var(--text);}
+.goal-nums{font-size:12px;color:var(--text3);margin-top:4px;}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3);}
+.empty-state-icon{font-size:40px;margin-bottom:12px;}
+.empty-state p{font-size:15px;}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;}
+.modal-title{font-family:var(--font-head);font-size:22px;font-weight:800;margin-bottom:16px;letter-spacing:.04em;color:var(--text);}
+.modal-close{float:right;background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;line-height:1;}
+/* descrizione dentro modal */
+.modal-desc{font-size:14px;color:#c8d0e0;margin-bottom:12px;}
+
+.my-ex-tag{display:inline-flex;align-items:center;gap:6px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;font-size:13px;font-weight:600;color:var(--text);}
+.my-ex-tag span{color:var(--text2);}
+.my-ex-tag button{background:none;border:none;color:#ff8080;cursor:pointer;font-size:14px;line-height:1;}
+
+.info-box{background:var(--bg4);border-radius:8px;padding:12px;margin-bottom:10px;}
+.info-box-label{font-family:var(--font-head);font-size:13px;color:var(--accent);margin-bottom:6px;letter-spacing:.05em;}
+.info-box-text{font-size:13px;color:#c8d0e0;line-height:1.6;}
+
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-brand">IRON<span>TRACK</span></div>
+  <button class="nav-tab active" onclick="showPage('dashboard',this)">Dashboard</button>
+  <button class="nav-tab" onclick="showPage('esercizi',this)">Esercizi</button>
+  <button class="nav-tab" onclick="showPage('log',this)">Log Allenamento</button>
+  <button class="nav-tab" onclick="showPage('progressi',this)">Progressioni</button>
+  <button class="nav-tab" onclick="showPage('schede',this)">Generatore Schede</button>
+</div>
+
+<div id="page-dashboard" class="page active">
+  <div id="stats-area"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card"><div class="card-title">ULTIMI LOG</div><div id="dash-logs"></div></div>
+    <div class="card"><div class="card-title">OBIETTIVI IN CORSO</div><div id="dash-goals"></div></div>
+  </div>
+</div>
+
+<div id="page-esercizi" class="page">
+  <div class="card">
+    <div class="card-title">I MIEI ESERCIZI</div>
+    <div id="my-ex-list" style="margin-bottom:16px;"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">DATABASE ESERCIZI</div>
+    <div class="filter-row" id="muscle-filters"></div>
+    <div class="ex-grid" id="db-ex-grid"></div>
+  </div>
+</div>
+
+<div id="page-log" class="page">
+  <div class="card">
+    <div class="card-title">NUOVO LOG</div>
+    <div class="form-row">
+      <div class="form-group"><label>Data</label><input type="date" id="log-date"></div>
+      <div class="form-group"><label>Esercizio</label><select id="log-ex"></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Carico (kg)</label><input type="number" id="log-kg" placeholder="100" min="0" step="0.5"></div>
+      <div class="form-group"><label>Serie</label><input type="number" id="log-sets" placeholder="4" min="1"></div>
+      <div class="form-group"><label>Ripetizioni</label><input type="number" id="log-reps" placeholder="8" min="1"></div>
+      <div class="form-group"><label>Note</label><input type="text" id="log-note" placeholder="Opzionale"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addLog()">SALVA LOG</button>
+  </div>
+  <div class="card"><div class="card-title">STORICO LOG</div><div id="log-table-wrap"></div></div>
+</div>
+
+<div id="page-progressi" class="page">
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="showInner('progressi','grafici',this)">Grafici</button>
+    <button class="inner-tab" onclick="showInner('progressi','obiettivi',this)">Obiettivi</button>
+  </div>
+  <div id="inner-progressi-grafici" class="inner-panel active">
+    <div class="form-group" style="max-width:280px;margin-bottom:16px;">
+      <label>Seleziona Esercizio</label>
+      <select id="prog-ex-select" onchange="renderProgressChart()"></select>
+    </div>
+    <div id="prog-chart-area"></div>
+    <div id="prog-table-area"></div>
+  </div>
+  <div id="inner-progressi-obiettivi" class="inner-panel">
+    <div id="goals-area"></div>
+    <hr class="section-sep">
+    <div class="card-title" style="margin-bottom:12px;">IMPOSTA OBIETTIVO</div>
+    <div class="form-row">
+      <div class="form-group"><label>Esercizio</label><select id="goal-ex"></select></div>
+      <div class="form-group"><label>Carico Obiettivo (kg)</label><input type="number" id="goal-kg" placeholder="150" min="0"></div>
+      <div class="form-group"><label>Data Target</label><input type="date" id="goal-date"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addGoal()">SALVA OBIETTIVO</button>
+  </div>
+</div>
+
+<div id="page-schede" class="page">
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="showInner('schede','ai',this)">Genera con AI</button>
+    <button class="inner-tab" onclick="showInner('schede','manuale',this)">Crea Manuale</button>
+  </div>
+  <div id="inner-schede-ai" class="inner-panel active">
+    <div class="card">
+      <div class="card-title">GENERA SCHEDA CON AI</div>
+      <div class="form-row">
+        <div class="form-group"><label>Obiettivo</label>
+          <select id="ai-goal-type"><option>Forza massimale</option><option>Ipertrofia</option><option>Forza + Ipertrofia</option><option>Definizione</option></select>
+        </div>
+        <div class="form-group"><label>Giorni/settimana</label>
+          <select id="ai-days"><option>3</option><option>4</option><option>5</option><option>6</option></select>
+        </div>
+        <div class="form-group"><label>Livello</label>
+          <select id="ai-level"><option>Principiante</option><option>Intermedio</option><option>Avanzato</option></select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>Note aggiuntive (opzionale)</label>
+        <textarea id="ai-notes" rows="2" placeholder="Es: ho dolore alla spalla destra..."></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="generateSchedule()" id="ai-gen-btn">⚡ GENERA SCHEDA</button>
+    </div>
+    <div id="ai-output"></div>
+  </div>
+  <div id="inner-schede-manuale" class="inner-panel">
+    <div class="card">
+      <div class="card-title">SCHEDA MANUALE</div>
+      <div class="form-row">
+        <div class="form-group"><label>Nome scheda</label><input type="text" id="manual-name" placeholder="Es. Push/Pull/Legs"></div>
+        <div class="form-group"><label>Giorno</label>
+          <select id="manual-day"><option>Giorno 1</option><option>Giorno 2</option><option>Giorno 3</option><option>Giorno 4</option><option>Giorno 5</option><option>Giorno 6</option></select>
+        </div>
+        <div class="form-group"><label>Esercizio</label><select id="manual-ex"></select></div>
+        <div class="form-group"><label>Serie x Reps</label><input type="text" id="manual-sets" placeholder="4x8"></div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="addManualExToScheda()">+ Aggiungi Esercizio</button>
+    </div>
+    <div id="manual-scheda-preview"></div>
+    <button class="btn btn-primary" onclick="saveManualScheda()" style="margin-top:8px;">SALVA SCHEDA</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="exDetailModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('exDetailModal')">✕</button>
+    <div id="ex-detail-content"></div>
+  </div>
+</div>
+
+<script>
+const DB_EXERCISES=[
+  {id:'squat',name:'Squat',muscle:'Quadricipiti',group:'Gambe',type:'Forza',desc:'Re degli esercizi. Lavora quadricipiti, glutei, lombari.',tips:'Mantieni la schiena neutra, ginocchia in linea con i piedi. Scendi almeno a parallelo.',volume:'3-5 serie da 3-6 reps per forza; 4x8-12 per ipertrofia. Recupero: 3-5 min.'},
+  {id:'panca',name:'Panca Piana',muscle:'Pettorali',group:'Petto',type:'Forza',desc:'Fondamentale per petto, deltoidi anteriori, tricipiti.',tips:'Schiena arcuata naturale, retrazione scapolare, gomiti a 45-75°.',volume:'4x4-6 per forza; 3x8-12 per ipertrofia. Recupero: 3-4 min.'},
+  {id:'stacco',name:'Stacco Da Terra',muscle:'Femorali/Lombari',group:'Schiena/Gambe',type:'Forza',desc:'Esercizio completo: glutei, femorali, lombari, trapezio.',tips:'Schiena piatta, barre vicino al corpo, estensione simultana di anche e ginocchia.',volume:'3x3-5 per forza massimale; 4x6-8 per ipertrofia.'},
+  {id:'military',name:'Military Press',muscle:'Deltoidi',group:'Spalle',type:'Forza',desc:'Spinta verticale per deltoidi anteriori e laterali.',tips:'Core braced, no iperestensione lombare, barra scende al mento.',volume:'4x5-8 per forza; 3x10-12 per ipertrofia. Recupero: 2-3 min.'},
+  {id:'trazioni',name:'Trazioni',muscle:'Dorsali',group:'Schiena',type:'Ipertrofia',desc:'Fondamentale per dorsali, bicipiti, retrazione scapolare.',tips:'Contrazione in cima, scapole abbassate. Evita il kipping per ipertrofia.',volume:'3-4x6-12. Aggiungi peso se superi le 12 reps.'},
+  {id:'rematori',name:'Rematori con bilanciere',muscle:'Dorsali',group:'Schiena',type:'Ipertrofia',desc:"Mass builder per dorso: romboidi, dorsali, trapezio medio.",tips:"Torso a 45°, tira verso l'ombelico, pausa con gomiti indietro.",volume:'4x8-12. Recupero: 2 min.'},
+  {id:'curl',name:'Curl con bilanciere',muscle:'Bicipiti',group:'Braccia',type:'Ipertrofia',desc:'Isolamento classico per i bicipiti.',tips:'Gomiti fissi ai fianchi, no oscillazione del torso.',volume:'3-4x10-15. Recupero: 90s.'},
+  {id:'tricep',name:'French Press',muscle:'Tricipiti',group:'Braccia',type:'Ipertrofia',desc:'Lungo capo del tricipite in estensione over-head.',tips:'Gomiti in posizione, abbassa lentamente verso la fronte.',volume:'3x10-15. Recupero: 90s.'},
+  {id:'affondi',name:'Affondi',muscle:'Quadricipiti',group:'Gambe',type:'Ipertrofia',desc:'Unilaterale per gambe: equilibrio e simmetria.',tips:'Torso verticale, ginocchio posteriore sfiora il pavimento.',volume:'3x10-12 per gamba. Recupero: 90s.'},
+  {id:'leg_press',name:'Leg Press',muscle:'Quadricipiti',group:'Gambe',type:'Ipertrofia',desc:'Alternativa guidata allo squat.',tips:'Non bloccare le ginocchia in estensione.',volume:'4x10-15. Recupero: 2 min.'},
+  {id:'lat_machine',name:'Lat Machine',muscle:'Dorsali',group:'Schiena',type:'Ipertrofia',desc:'Ottimo per dorsali. Buon complemento alle trazioni.',tips:'Tira verso il petto, non dietro la testa.',volume:'3x10-15. Recupero: 90s.'},
+  {id:'dip',name:'Dips alle parallele',muscle:'Pettorali/Tricipiti',group:'Petto/Tricipiti',type:'Ipertrofia',desc:'Spinta verticale verso il basso.',tips:'Torso inclinato per petto, verticale per tricipiti.',volume:'3x8-15. Aggiungi peso se necessario.'},
+  {id:'facepull',name:'Face Pull',muscle:'Deltoidi posteriori',group:'Spalle',type:'Ipertrofia',desc:'Salute delle spalle: cuffia dei rotatori e deltoidi posteriori.',tips:'Tira verso la faccia, gomiti alti, rotazione esterna finale.',volume:'3-4x15-20. Recupero: 60s.'},
+  {id:'hip_thrust',name:'Hip Thrust',muscle:'Glutei',group:'Gambe',type:'Ipertrofia',desc:'Migliore esercizio per glutei con carichi elevati.',tips:'Schiena poggiata su panca, spinta delle anche verso il soffitto.',volume:'4x8-15. Recupero: 2 min.'},
+  {id:'rdl',name:'Romanian Deadlift',muscle:'Femorali',group:'Schiena/Gambe',type:'Ipertrofia',desc:'Isolamento femorali e glutei con eccentrica lunga.',tips:'Schiena neutra, piega anche non ginocchia.',volume:'3x10-12. Recupero: 2 min.'},
+  {id:'incline_press',name:'Panca Inclinata',muscle:'Pettorali superiori',group:'Petto',type:'Ipertrofia',desc:'Petto superiore e deltoide anteriore.',tips:'Stessa tecnica della panca piana, retrazione scapolare.',volume:'3-4x8-12. Recupero: 2-3 min.'},
+];
+const MUSCLES=[...new Set(DB_EXERCISES.map(e=>e.group))];
+let state={myExercises:[],logs:[],goals:[],savedSchede:[]};
+function loadState(){try{const s=localStorage.getItem('irontrack_v3');if(s){const p=JSON.parse(s);state={...state,...p};}}catch(e){}}
+function saveState(){localStorage.setItem('irontrack_v3',JSON.stringify(state));}
+
+function showPage(p,btn){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  if(btn)btn.classList.add('active');
+  renderPage(p);
+}
+function showInner(page,tab,btn){
+  document.querySelectorAll(`#page-${page} .inner-tab`).forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll(`#page-${page} .inner-panel`).forEach(t=>t.classList.remove('active'));
+  document.getElementById(`inner-${page}-${tab}`).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(page==='progressi'&&tab==='grafici')renderProgressChart();
+  if(page==='progressi'&&tab==='obiettivi')renderGoals();
+}
+function renderPage(p){
+  if(p==='dashboard')renderDashboard();
+  if(p==='esercizi')renderExercises();
+  if(p==='log'){renderLogForm();renderLogTable();}
+  if(p==='progressi'){renderProgSelects();renderProgressChart();}
+  if(p==='schede')renderManualSelectEx();
+}
+
+function renderDashboard(){
+  const prs=state.myExercises.filter(id=>{const logs=state.logs.filter(l=>l.ex===id).sort((a,b)=>new Date(b.date)-new Date(a.date));return logs.length>=2&&logs[0].kg>logs[1].kg;}).length;
+  document.getElementById('stats-area').innerHTML=`<div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Allenamenti</div><div class="stat-val amber">${state.logs.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Esercizi tracciati</div><div class="stat-val">${state.myExercises.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Obiettivi attivi</div><div class="stat-val">${state.goals.length}</div></div>
+    <div class="stat-card"><div class="stat-label">PR recenti</div><div class="stat-val green">${prs}</div></div>
+  </div>`;
+  const recent=[...state.logs].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6);
+  document.getElementById('dash-logs').innerHTML=recent.length
+    ?`<div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Esercizio</th><th>Carico</th><th>Vol.</th></tr></thead><tbody>`+recent.map(l=>{const ex=DB_EXERCISES.find(e=>e.id===l.ex)||{name:l.ex};return `<tr><td>${l.date}</td><td>${ex.name}</td><td style="color:var(--accent);font-weight:700">${l.kg} kg</td><td>${l.sets}x${l.reps}</td></tr>`;}).join('')+`</tbody></table></div>`
+    :'<div class="empty-state"><div class="empty-state-icon">🏋️</div><p>Nessun log ancora</p></div>';
+  document.getElementById('dash-goals').innerHTML=state.goals.length
+    ?state.goals.map(g=>{const ex=DB_EXERCISES.find(e=>e.id===g.ex)||{name:g.ex};const logs=state.logs.filter(l=>l.ex===g.ex).sort((a,b)=>new Date(b.date)-new Date(a.date));const current=logs[0]?.kg||0;const pct=Math.min(100,Math.round((current/g.kg)*100));return `<div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span style="font-weight:600;color:var(--text)">${ex.name}</span><span style="color:var(--text2)">${current} / ${g.kg} kg</span></div><div class="progress-bar-wrap"><div class="progress-bar" style="width:${pct}%"></div></div><div class="goal-nums">${pct}% completato</div></div>`;}).join('')
+    :'<div class="empty-state"><div class="empty-state-icon">🎯</div><p>Nessun obiettivo impostato</p></div>';
+}
+
+function renderExercises(){
+  document.getElementById('my-ex-list').innerHTML=state.myExercises.length
+    ?'<div style="display:flex;flex-wrap:wrap;gap:8px;">'+state.myExercises.map(id=>{const ex=DB_EXERCISES.find(e=>e.id===id);return ex?`<div class="my-ex-tag">${ex.name}<span>${ex.group}</span><button onclick="removeMyEx('${id}')">✕</button></div>`:''}).join('')+'</div>'
+    :'<div style="color:var(--text3);font-size:13px;">Nessun esercizio aggiunto. Clicca su un esercizio nel database qui sotto.</div>';
+  document.getElementById('muscle-filters').innerHTML='<button class="filter-btn active" onclick="filterMuscle(this,\'all\')">Tutti</button>'+MUSCLES.map(m=>`<button class="filter-btn" onclick="filterMuscle(this,'${m}')">${m}</button>`).join('');
+  renderDbGrid('all');
+}
+function filterMuscle(btn,group){document.querySelectorAll('#muscle-filters .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderDbGrid(group);}
+function renderDbGrid(filter){
+  const exs=filter==='all'?DB_EXERCISES:DB_EXERCISES.filter(e=>e.group===filter);
+  document.getElementById('db-ex-grid').innerHTML=exs.map(ex=>`
+    <div class="ex-card ${state.myExercises.includes(ex.id)?'selected':''}" onclick="openExDetail('${ex.id}')">
+      <div class="ex-name">${ex.name}</div>
+      <div class="ex-meta">
+        <span class="badge badge-muscle">${ex.muscle}</span>
+        <span class="badge badge-type ${ex.type==='Forza'?'forza':''}">${ex.type}</span>
+      </div>
+      <div class="ex-detail">${ex.desc}</div>
+    </div>`).join('');
+}
+function openExDetail(id){
+  const ex=DB_EXERCISES.find(e=>e.id===id);const inMy=state.myExercises.includes(id);
+  document.getElementById('ex-detail-content').innerHTML=`
+    <div class="modal-title">${ex.name}</div>
+    <div class="ex-meta" style="margin-bottom:12px;">
+      <span class="badge badge-muscle">${ex.muscle}</span>
+      <span class="badge badge-type ${ex.type==='Forza'?'forza':''}">${ex.type}</span>
+    </div>
+    <div class="modal-desc">${ex.desc}</div>
+    <div class="info-box"><div class="info-box-label">TECNICA</div><div class="info-box-text">${ex.tips}</div></div>
+    <div class="info-box" style="margin-bottom:16px;"><div class="info-box-label">VOLUME & RECUPERO</div><div class="info-box-text">${ex.volume}</div></div>
+    <button class="btn ${inMy?'btn-danger':'btn-primary'}" onclick="${inMy?`removeMyEx('${id}');closeModal('exDetailModal')`:`addMyEx('${id}');closeModal('exDetailModal')`}">
+      ${inMy?'Rimuovi dai miei esercizi':'Aggiungi ai miei esercizi'}
+    </button>`;
+  document.getElementById('exDetailModal').classList.add('open');
+}
+function addMyEx(id){if(!state.myExercises.includes(id)){state.myExercises.push(id);saveState();}renderExercises();updateAllSelects();}
+function removeMyEx(id){state.myExercises=state.myExercises.filter(e=>e!==id);saveState();renderExercises();updateAllSelects();}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function renderLogForm(){
+  document.getElementById('log-ex').innerHTML=state.myExercises.length?state.myExercises.map(id=>{const ex=DB_EXERCISES.find(e=>e.id===id)||{name:id};return `<option value="${id}">${ex.name}</option>`;}).join(''):'<option value="">— Aggiungi prima un esercizio —</option>';
+  document.getElementById('log-date').value=new Date().toISOString().split('T')[0];
+}
+function addLog(){
+  const ex=document.getElementById('log-ex').value,date=document.getElementById('log-date').value,kg=parseFloat(document.getElementById('log-kg').value),sets=parseInt(document.getElementById('log-sets').value),reps=parseInt(document.getElementById('log-reps').value),note=document.getElementById('log-note').value;
+  if(!ex||!date||isNaN(kg)||isNaN(sets)||isNaN(reps)){alert('Compila tutti i campi obbligatori.');return;}
+  state.logs.push({id:Date.now(),ex,date,kg,sets,reps,note});saveState();
+  document.getElementById('log-kg').value='';document.getElementById('log-note').value='';
+  renderLogTable();renderDashboard();
+}
+function renderLogTable(){
+  const el=document.getElementById('log-table-wrap'),sorted=[...state.logs].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!sorted.length){el.innerHTML='<div class="empty-state"><p>Nessun log ancora</p></div>';return;}
+  el.innerHTML=`<div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Esercizio</th><th>Carico</th><th>Serie</th><th>Reps</th><th>1RM est.</th><th>Note</th><th></th></tr></thead><tbody>`+sorted.map(l=>{const ex=DB_EXERCISES.find(e=>e.id===l.ex)||{name:l.ex};const orm=Math.round(l.kg*(1+l.reps/30));return `<tr><td>${l.date}</td><td>${ex.name}</td><td style="color:var(--accent);font-weight:700">${l.kg} kg</td><td>${l.sets}</td><td>${l.reps}</td><td style="color:var(--green)">${orm} kg</td><td style="color:var(--text3);font-size:12px;">${l.note||'—'}</td><td><button class="btn btn-sm btn-danger" onclick="deleteLog(${l.id})">✕</button></td></tr>`;}).join('')+`</tbody></table></div>`;
+}
+function deleteLog(id){state.logs=state.logs.filter(l=>l.id!==id);saveState();renderLogTable();renderDashboard();}
+
+let progChart=null;
+function renderProgSelects(){
+  const opts=state.myExercises.map(id=>{const ex=DB_EXERCISES.find(e=>e.id===id)||{name:id};return `<option value="${id}">${ex.name}</option>`;}).join('');
+  ['prog-ex-select','goal-ex'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts||'<option value="">— Nessun esercizio —</option>';});
+}
+function renderProgressChart(){
+  const exId=document.getElementById('prog-ex-select').value,chartArea=document.getElementById('prog-chart-area'),tableArea=document.getElementById('prog-table-area');
+  if(!exId){chartArea.innerHTML='<div class="empty-state"><p>Seleziona un esercizio</p></div>';tableArea.innerHTML='';return;}
+  const logs=state.logs.filter(l=>l.ex===exId).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(!logs.length){chartArea.innerHTML='<div class="empty-state"><p>Nessun dato per questo esercizio</p></div>';tableArea.innerHTML='';return;}
+  const ex=DB_EXERCISES.find(e=>e.id===exId)||{name:exId},goal=state.goals.find(g=>g.ex===exId);
+  chartArea.innerHTML=`<div class="card"><div class="card-title">${ex.name.toUpperCase()} — CARICO NEL TEMPO</div><div class="chart-wrap"><canvas id="progCanvas"></canvas></div></div>`;
+  const datasets=[{label:'Carico (kg)',data:logs.map(l=>l.kg),borderColor:'#f5a623',backgroundColor:'rgba(245,166,35,.15)',tension:.3,pointBackgroundColor:'#f5a623',pointRadius:5,fill:true},{label:'1RM stimato',data:logs.map(l=>Math.round(l.kg*(1+l.reps/30))),borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,.08)',tension:.3,pointBackgroundColor:'#22c55e',pointRadius:4,fill:false,borderDash:[5,3]}];
+  if(goal)datasets.push({label:`Obiettivo (${goal.kg}kg)`,data:logs.map(()=>goal.kg),borderColor:'#a855f7',borderDash:[8,4],pointRadius:0,fill:false,tension:0});
+  if(progChart){progChart.destroy();progChart=null;}
+  setTimeout(()=>{const ctx=document.getElementById('progCanvas');if(!ctx)return;progChart=new Chart(ctx,{type:'line',data:{labels:logs.map(l=>l.date),datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#aab4c8',font:{size:12}}}},scales:{x:{ticks:{color:'#6a7a95',maxRotation:45},grid:{color:'rgba(42,48,64,.8)'}},y:{ticks:{color:'#6a7a95',callback:v=>v+'kg'},grid:{color:'rgba(42,48,64,.8)'}}}}});},50);
+  const sorted=[...logs].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  tableArea.innerHTML=`<div class="card" style="margin-top:0;"><div class="card-title">STORICO DETTAGLIATO</div><div style="overflow-x:auto"><table><thead><tr><th>Data</th><th>Carico</th><th>Serie</th><th>Reps</th><th>1RM</th><th>Δ</th><th>Note</th></tr></thead><tbody>`+sorted.map((l,i)=>{const orm=Math.round(l.kg*(1+l.reps/30)),prev=sorted[i+1],diff=prev?+(l.kg-prev.kg).toFixed(1):null,tClass=diff===null?'trend-eq':diff>0?'trend-up':diff<0?'trend-down':'trend-eq',tText=diff===null?'—':diff>0?`+${diff}`:diff===0?'=':diff;return `<tr><td>${l.date}</td><td style="color:var(--accent);font-weight:700">${l.kg} kg</td><td>${l.sets}</td><td>${l.reps}</td><td style="color:var(--green)">${orm}</td><td class="${tClass}">${tText}</td><td style="color:var(--text3);font-size:12px;">${l.note||'—'}</td></tr>`;}).join('')+`</tbody></table></div></div>`;
+}
+function renderGoals(){
+  document.getElementById('goals-area').innerHTML=state.goals.length?state.goals.map(g=>{const ex=DB_EXERCISES.find(e=>e.id===g.ex)||{name:g.ex};const logs=state.logs.filter(l=>l.ex===g.ex).sort((a,b)=>new Date(b.date)-new Date(a.date));const current=logs[0]?.kg||0,pct=Math.min(100,Math.round((current/g.kg)*100));return `<div class="goal-card"><div class="goal-ex-name">${ex.name}</div><div class="goal-row"><span>Carico attuale</span><span style="color:var(--text);font-weight:600">${current} kg</span></div><div class="goal-row"><span>Obiettivo</span><span style="color:var(--accent);font-weight:700">${g.kg} kg</span></div><div class="goal-row"><span>Target date</span><span>${g.date||'—'}</span></div><div class="progress-bar-wrap"><div class="progress-bar" style="width:${pct}%"></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;"><div class="goal-nums">${pct}% — mancano ${Math.max(0,g.kg-current).toFixed(1)} kg</div><button class="btn btn-sm btn-danger" onclick="deleteGoal('${g.id}')">✕</button></div></div>`;}).join(''):'<div class="empty-state"><div class="empty-state-icon">🎯</div><p>Nessun obiettivo ancora</p></div>';
+}
+function addGoal(){
+  const ex=document.getElementById('goal-ex').value,kg=parseFloat(document.getElementById('goal-kg').value),date=document.getElementById('goal-date').value;
+  if(!ex||isNaN(kg)){alert('Seleziona esercizio e inserisci il carico obiettivo.');return;}
+  state.goals=state.goals.filter(g=>g.ex!==ex);state.goals.push({id:Date.now().toString(),ex,kg,date});saveState();renderGoals();renderDashboard();
+  document.getElementById('goal-kg').value='';document.getElementById('goal-date').value='';
+}
+function deleteGoal(id){state.goals=state.goals.filter(g=>g.id!==id);saveState();renderGoals();renderDashboard();}
+
+async function generateSchedule(){
+  const goalType=document.getElementById('ai-goal-type').value,days=document.getElementById('ai-days').value,level=document.getElementById('ai-level').value,notes=document.getElementById('ai-notes').value,myExNames=state.myExercises.map(id=>DB_EXERCISES.find(e=>e.id===id)?.name||id);
+  const output=document.getElementById('ai-output'),btn=document.getElementById('ai-gen-btn');
+  btn.disabled=true;btn.textContent='Generando...';
+  output.innerHTML=`<div class="card"><div class="ai-loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span style="margin-left:8px;color:var(--text2);font-size:13px;">L'AI sta creando la tua scheda...</span></div></div>`;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:`Sei un personal trainer esperto. Crea scheda per: Obiettivo: ${goalType}, Giorni: ${days}/sett, Livello: ${level}, Esercizi preferiti: ${myExNames.join(', ')||'qualsiasi'}, Note: ${notes||'nessuna'}. Rispondi SOLO JSON valido senza backtick: {"nome":"...","descrizione":"...","giorni":[{"giorno":"...","focus":"...","esercizi":[{"nome":"...","serie":"4","reps":"8","recupero":"2 min","note":""}]}],"consigli":"..."}`}]})});
+    const data=await resp.json(),text=data.content?.filter(c=>c.type==='text').map(c=>c.text).join(''),scheda=JSON.parse(text.replace(/```json|```/g,'').trim());
+    output.innerHTML=`<div class="card"><div class="card-title">${scheda.nome}</div><div style="color:#c8d0e0;font-size:14px;margin-bottom:16px;">${scheda.descrizione}</div>${scheda.giorni.map(g=>`<div class="scheda-day"><div class="scheda-day-title">${g.giorno}</div><div style="font-size:12px;color:var(--text3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;">${g.focus}</div>${g.esercizi.map(ex=>`<div class="scheda-ex-item"><div><div class="scheda-ex-name">${ex.nome}</div>${ex.note?`<div style="font-size:12px;color:var(--text3);">${ex.note}</div>`:''}</div><div class="scheda-ex-sets">${ex.serie}×${ex.reps} — ${ex.recupero}</div></div>`).join('')}</div>`).join('')}<div class="info-box" style="margin-top:6px;"><div class="info-box-label">CONSIGLI PERSONALIZZATI</div><div class="info-box-text">${scheda.consigli}</div></div></div>`;
+  }catch(e){output.innerHTML=`<div class="card" style="border-color:var(--red);"><div style="color:#ff8080;">Errore nella generazione. Riprova.</div></div>`;}
+  btn.disabled=false;btn.innerHTML='⚡ GENERA SCHEDA';
+}
+
+let manualBuild={};
+function renderManualSelectEx(){document.getElementById('manual-ex').innerHTML=DB_EXERCISES.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');}
+function addManualExToScheda(){const day=document.getElementById('manual-day').value,exId=document.getElementById('manual-ex').value,sets=document.getElementById('manual-sets').value||'3x10',ex=DB_EXERCISES.find(e=>e.id===exId);if(!manualBuild[day])manualBuild[day]=[];manualBuild[day].push({id:exId,name:ex?.name||exId,sets});renderManualPreview();}
+function renderManualPreview(){document.getElementById('manual-scheda-preview').innerHTML=Object.keys(manualBuild).map(d=>`<div class="scheda-day"><div class="scheda-day-title">${d}</div>${manualBuild[d].map((ex,i)=>`<div class="scheda-ex-item"><div class="scheda-ex-name">${ex.name}</div><div style="display:flex;align-items:center;gap:8px;"><span class="scheda-ex-sets">${ex.sets}</span><button class="btn btn-sm btn-danger" onclick="removeManualEx('${d}',${i})">✕</button></div></div>`).join('')}</div>`).join('');}
+function removeManualEx(day,idx){manualBuild[day].splice(idx,1);if(!manualBuild[day].length)delete manualBuild[day];renderManualPreview();}
+function saveManualScheda(){const name=document.getElementById('manual-name').value||'Scheda senza nome';if(!Object.keys(manualBuild).length){alert('Aggiungi almeno un esercizio.');return;}state.savedSchede.push({name,days:JSON.parse(JSON.stringify(manualBuild)),date:new Date().toLocaleDateString('it-IT')});saveState();manualBuild={};renderManualPreview();document.getElementById('manual-name').value='';alert('Scheda salvata!');}
+
+function updateAllSelects(){const opts=state.myExercises.map(id=>{const ex=DB_EXERCISES.find(e=>e.id===id)||{name:id};return `<option value="${id}">${ex.name}</option>`;}).join('');['log-ex','goal-ex'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts||'<option value="">— Aggiungi prima un esercizio —</option>';});}
+
+loadState();renderDashboard();updateAllSelects();
+</script>
+</body>
+</html>
